@@ -1,10 +1,10 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { fetchGames, fetchStats, type Game, type Stats } from '../src/utils/api'
-import { StatsPanel } from '../src/components/StatsPanel'
-import { LpChart } from '../src/components/LpChart'
-import { GameHistory } from '../src/components/GameHistory'
+import { fetchGames, fetchStats, type Game, type Stats } from '../utils/api'
+import { StatsPanel } from '../components/StatsPanel'
+import { LpChart } from '../components/LpChart'
+import { GameHistory } from '../components/GameHistory'
 
 const PAGE_SIZE = 20
 
@@ -30,7 +30,8 @@ export default function Dashboard() {
       setLastRefresh(new Date())
     } catch {
       setError(
-        'Impossible de contacter le backend. Assurez-vous que le serveur tourne sur le port 3001.\nLancez : cd backend && npx ts-node src/index.ts'
+        'Impossible de contacter le backend. Assurez-vous que le serveur tourne sur le port 3001.\n' +
+        'Lancez : cd backend && pnpm dev'
       )
     } finally {
       setLoading(false)
@@ -39,6 +40,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     load()
+    // Auto-refresh toutes les 5 minutes
     const interval = setInterval(load, 5 * 60 * 1000)
     return () => clearInterval(interval)
   }, [load])
@@ -55,6 +57,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-900">
+      {/* Header */}
       <header className="sticky top-0 z-10 border-b border-gray-800 bg-gray-900/95 backdrop-blur px-6 py-3">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -71,6 +74,7 @@ export default function Dashboard() {
               )}
             </div>
           </div>
+
           <div className="flex items-center gap-3">
             {lastRefresh && (
               <span className="text-gray-600 text-xs hidden sm:block">
@@ -87,7 +91,10 @@ export default function Dashboard() {
         </div>
       </header>
 
+      {/* Main */}
       <main className="max-w-4xl mx-auto px-6 py-6">
+
+        {/* État chargement initial */}
         {loading && (
           <div className="flex flex-col items-center justify-center h-48 gap-3">
             <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
@@ -95,6 +102,7 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Erreur de connexion */}
         {error && !loading && (
           <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-5 mb-6">
             <p className="text-red-400 font-medium mb-1">⚠️ Erreur de connexion</p>
@@ -102,26 +110,40 @@ export default function Dashboard() {
           </div>
         )}
 
+        {/* Contenu principal */}
         {!loading && !error && (
           <>
+            {/* Stats */}
             {stats ? (
               <StatsPanel stats={stats} />
             ) : (
               <div className="bg-gray-800/50 border border-gray-700 rounded-xl p-5 mb-6 text-center">
                 <p className="text-gray-400 text-sm">
-                  Aucune donnée. Configurez{' '}
-                  <code className="text-indigo-400">backend/.env</code> et lancez le backend.
+                  Aucune donnée disponible. Configurez votre{' '}
+                  <code className="text-indigo-400">.env</code> puis lancez le backend.
                 </p>
               </div>
             )}
-            {stats && stats.lpHistory.length >= 2 && <LpChart stats={stats} />}
-            <GameHistory games={games} total={total} onLoadMore={loadMore} loading={loadingMore} />
+
+            {/* Graphique LP */}
+            {stats && stats.lpHistory.length >= 2 && (
+              <LpChart stats={stats} />
+            )}
+
+            {/* Historique */}
+            <GameHistory
+              games={games}
+              total={total}
+              onLoadMore={loadMore}
+              loading={loadingMore}
+            />
           </>
         )}
       </main>
 
+      {/* Footer */}
       <footer className="border-t border-gray-800 px-6 py-4 text-center text-gray-600 text-xs">
-        TFT Ranked Tracker — Classé uniquement (queue 1100) • Auto-refresh 5 min
+        TFT Ranked Tracker — Parties Classées uniquement (queue 1100) • Auto-refresh 5 min
       </footer>
     </div>
   )

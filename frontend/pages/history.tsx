@@ -1,1 +1,0 @@
-// Pages d'historiques des parties

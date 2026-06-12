@@ -1,14 +1,51 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
+}
+
+model Summoner {
+  id         String       @id @default(cuid())
+  puuid      String       @unique
+  summonerId String       @unique
+  gameName   String
+  tagLine    String
+  region     String       @default("EUW1")
+  createdAt  DateTime     @default(now())
+  matches    Match[]
+  lpHistory  LpSnapshot[]
+}
+
+model Match {
+  id          String     @id @default(cuid())
+  matchId     String     @unique
+  summonerId  String
+  summoner    Summoner   @relation(fields: [summonerId], references: [id])
+  placement   Int
+  level       Int
+  timeElapsed Int
+  gameDate    DateTime
+  queueId     Int        @default(1100)
+  augments    String     @default("[]")
+  units       String     @default("[]")
+  lpBefore    Int?
+  lpAfter     Int?
+  lpDelta     Int?
+  tier        String?
+  rank        String?
+  notifiedAt  DateTime?
+  createdAt   DateTime   @default(now())
+}
+
+model LpSnapshot {
+  id         String   @id @default(cuid())
+  summonerId String
+  summoner   Summoner @relation(fields: [summonerId], references: [id])
+  lp         Int
+  tier       String
+  rank       String
+  recordedAt DateTime @default(now())
 }
